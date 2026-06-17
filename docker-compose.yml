@@ -1,0 +1,53 @@
+services:
+
+  # ── Application Next.js ───────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cesizen-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      # Construit à partir des variables définies dans .env
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy   # Attend que Postgres soit prêt avant de démarrer
+    networks:
+      - cesizen-internal
+
+  # ── Base de données PostgreSQL ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: cesizen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - cesizen_data:/var/lib/postgresql/data   # Persistance des données
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - cesizen-internal
+    # La DB n'est PAS exposée sur l'hôte — accessible uniquement par le service app
+    # via le réseau interne Docker (hostname : db)
+
+# ─── Réseau interne isolé ─────────────────────────────────────────────────────
+# La DB est invisible depuis l'extérieur, seul le service app peut la joindre
+networks:
+  cesizen-internal:
+    driver: bridge
+
+# ─── Volume persistant ────────────────────────────────────────────────────────
+volumes:
+  cesizen_data:
+    driver: local

@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.7389 0.2025 150.2101);
+  --color-secondary: oklch(0.9680 0.2110 109.7633);
+
+  /* Nuances VERT (Primary) - Basé sur #00C059 */
+  --color-primary-50: oklch(0.9569 0.0359 149.0656);
+  --color-primary-100: oklch(0.9125 0.0709 149.2241);
+  --color-primary-200: oklch(0.8697 0.1053 149.5543);
+  --color-primary-300: oklch(0.8260 0.1380 149.6689);
+  --color-primary-400: oklch(0.7830 0.1718 149.7029);
+  --color-primary-500: oklch(0.7389 0.2025 150.2101);
+  --color-primary-600: oklch(0.6390 0.1694 150.1004);
+  --color-primary-700: oklch(0.5379 0.1352 150.1667);
+  --color-primary-800: oklch(0.4377 0.1018 150.0416);
+  --color-primary-900: oklch(0.3377 0.0680 150.2741);
+  --color-primary-950: oklch(0.2365 0.0339 150.6229);
+
+
+  /* Nuances JAUNE (Secondary) - Basé sur #FFE147 */
+  --color-secondary-50: oklch(0.98 0.04 95);
+  --color-secondary-100: oklch(0.97 0.09 95);
+  --color-secondary-200: oklch(0.96 0.13 95);
+  --color-secondary-300: oklch(0.95 0.17 94);
+  --color-secondary-400: oklch(0.94 0.20 92);
+  --color-secondary-500: oklch(0.85 0.19 90);
+  --color-secondary-600: oklch(0.75 0.16 88);
+  --color-secondary-700: oklch(0.65 0.13 85);
+  --color-secondary-800: oklch(0.55 0.10 82);
+  --color-secondary-900: oklch(0.45 0.07 80);
+  --color-secondary-950: oklch(0.35 0.05 78);
+
+  /* Les tailles de texte */
+
+  --text-xs: clamp(0.7rem, 0.68rem + 0.1vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 0.76rem + 0.2vw, 0.875rem);
+  --text-base: clamp(0.9rem, 0.86rem + 0.2vw, 1rem);
+  --text-lg: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-xl: clamp(1.15rem, 1.1rem + 0.25vw, 1.25rem);
+  --text-2xl: clamp(1.35rem, 1.2rem + 0.7vw, 1.5rem);
+  --text-3xl: clamp(1.5rem, 1.33rem + 0.8vw, 1.875rem);
+  --text-4xl: clamp(1.8rem, 1.6rem + 1vw, 2.25rem);
+  --text-5xl: clamp(2.2rem, 1.8rem + 2vw, 3rem);
+  --text-6xl: clamp(2.8rem, 2.4rem + 2vw, 3.75rem);
+  --text-7xl: clamp(3.5rem, 3rem + 2.5vw, 4.5rem);
+  --text-8xl: clamp(4.5rem, 3.8rem + 3.5vw, 6rem);
+  --text-9xl: clamp(6rem, 5.1rem + 4.5vw, 8rem);
+  
+  --text-tiny: var(--text-xs);
+  --text-small: var(--text-sm);
+  --text-medium: var(--text-base);
+  --text-large: var(--text-lg);
+}
+
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
+/* 2. Importer le plugin HeroUI (nécessite un petit fichier JS/TS) */
+@plugin "./hero-plugin.tsx";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+}
+
+:root, html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
