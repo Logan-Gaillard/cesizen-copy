@@ -1,0 +1,53 @@
+services:
+
+  # ── Application Next.js — mode developpement avec hot-reload ──────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps   # stage avec node_modules complet (deps + devDependencies), sans build
+    container_name: cesizen-app-dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    volumes:
+      - .:/app            # monte le code source pour le hot-reload
+      - /app/node_modules  # exclut node_modules (garde celui de l'image, deja installe)
+      - /app/.next         # exclut .next (evite les conflits de build entre host et conteneur)
+    command: sh -c "npx prisma generate && npm run dev"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cesizen-internal
+
+  # ── Base de données PostgreSQL (dev) ──────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: cesizen-db-dev
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"   # expose en dev pour se connecter avec un client SQL local
+    volumes:
+      - cesizen_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - cesizen-internal
+
+networks:
+  cesizen-internal:
+    driver: bridge
+
+volumes:
+  cesizen_dev_data:
+    driver: local
