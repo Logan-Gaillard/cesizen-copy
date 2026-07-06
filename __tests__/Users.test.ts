@@ -308,6 +308,18 @@ describe("updateCurrentUserProfile", () => {
     expect(result.success).toBe(false);
     expect(result.message).toMatch(/pseudo/i);
   });
+
+  it("unit-19 — échec si pseudo ou email vide", async () => {
+    mockGetSessionUser.mockResolvedValue({ id: "uuid-123", role: "user", nickname: "Logan" });
+
+    const result = await updateCurrentUserProfile({
+      nickname: "   ",
+      email: "logan@test.fr",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/requis/i);
+  });
 });
 
 // ─── changeCurrentUserPassword ────────────────────────────────────────────────
@@ -389,5 +401,32 @@ describe("changeCurrentUserPassword", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toMatch(/incorrect/i);
+  });
+
+  it("unit-20 — échec si non authentifié", async () => {
+    mockGetSessionUser.mockResolvedValue(null);
+
+    const result = await changeCurrentUserPassword({
+      currentPassword: "AncienMdp1!",
+      newPassword: "NouveauMdp1!",
+      confirmPassword: "NouveauMdp1!",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/authentifié/i);
+  });
+
+  it("unit-21 — échec si l'utilisateur est introuvable en base", async () => {
+    mockGetSessionUser.mockResolvedValue({ id: "uuid-123", role: "user", nickname: "Logan" });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+    const result = await changeCurrentUserPassword({
+      currentPassword: "AncienMdp1!",
+      newPassword: "NouveauMdp1!",
+      confirmPassword: "NouveauMdp1!",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/introuvable/i);
   });
 });

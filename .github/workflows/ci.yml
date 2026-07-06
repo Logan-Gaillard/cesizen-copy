@@ -26,6 +26,9 @@ jobs:
   tests:
     name: Tests unitaires (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       matrix:
         node: [20, 22, 24]
@@ -47,6 +50,9 @@ jobs:
           name: coverage-report-node-${{ matrix.node }}
           path: coverage/
           retention-days: 7
+      - name: Commenter la couverture sur la PR
+        if: matrix.node == 20 && github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
 
   security:
     name: Audit des dependances
