@@ -26,7 +26,6 @@ jobs:
   tests:
     name: Tests unitaires (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    needs: quality
     strategy:
       matrix:
         node: [20, 22, 24]
@@ -49,10 +48,22 @@ jobs:
           path: coverage/
           retention-days: 7
 
+  security:
+    name: Audit des dependances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [quality, tests]
+    needs: [quality, tests, security]
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
