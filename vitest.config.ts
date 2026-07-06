@@ -7,7 +7,7 @@ export default defineConfig({
 		globals: true,
 		coverage: {
 			provider: "v8",
-			reporter: ["text", "html", "json"],
+			reporter: ["text", "html", "json", "json-summary"],
 			exclude: ["node_modules/**", ".next/**", "**/*.config.*"],
 			thresholds: {
 				statements: 70,
