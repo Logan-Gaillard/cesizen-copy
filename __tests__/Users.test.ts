@@ -243,7 +243,15 @@ describe("getAllUsers", () => {
 describe("deleteUser", () => {
   it("unit-11 — supprime un utilisateur si admin", async () => {
     mockGetSessionUser.mockResolvedValue({ id: "admin-id", role: "admin", nickname: "Admin" });
-    vi.mocked(prisma.user.delete).mockResolvedValue({} as any);
+    vi.mocked(prisma.user.delete).mockResolvedValue({
+      id: "u1",
+      nickname: "User",
+      email: "user@test.fr",
+      pwdHash: "hash",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     await expect(deleteUser("u1")).resolves.toBeUndefined();
     expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } });
@@ -262,7 +270,15 @@ describe("updateCurrentUserProfile", () => {
   it("unit-13 — mise à jour réussie du profil", async () => {
     mockGetSessionUser.mockResolvedValue({ id: "uuid-123", role: "user", nickname: "Logan" });
     vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
-    vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+    vi.mocked(prisma.user.update).mockResolvedValue({
+      id: "uuid-123",
+      nickname: "NouveauNickname",
+      email: "nouveau@test.fr",
+      pwdHash: "hash",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     const result = await updateCurrentUserProfile({
       nickname: "NouveauNickname",
@@ -308,7 +324,15 @@ describe("changeCurrentUserPassword", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+    vi.mocked(prisma.user.update).mockResolvedValue({
+      id: "uuid-123",
+      nickname: "Logan",
+      email: "logan@test.fr",
+      pwdHash: "hashed_NouveauMdp1!",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     const result = await changeCurrentUserPassword({
       currentPassword: "AncienMdp1!",

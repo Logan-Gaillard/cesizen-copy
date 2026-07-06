@@ -33,6 +33,7 @@ const useAdminUsers = () => {
 	}, []);
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- fetch au montage, setState via fonction déjà déclenchée en async
 		fetchUsers();
 	}, [fetchUsers]);
 

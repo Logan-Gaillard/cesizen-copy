@@ -1,3 +1,10 @@
+# CESIZEN
+
+[![CI](https://github.com/Logan-Gaillard/cesizen-copy/actions/workflows/ci.yml/badge.svg)](https://github.com/Logan-Gaillard/cesizen-copy/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Logan-Gaillard/cesizen-copy)](https://github.com/Logan-Gaillard/cesizen-copy/releases)
+[![License](https://img.shields.io/github/license/Logan-Gaillard/cesizen-copy)](https://github.com/Logan-Gaillard/cesizen-copy/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/Logan-Gaillard/cesizen-copy)](https://github.com/Logan-Gaillard/cesizen-copy/commits/main)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
