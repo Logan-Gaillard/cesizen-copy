@@ -41,4 +41,23 @@ describe("GET /api/health", () => {
 
     expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
   });
+
+  it("unit-06 — regression : ne plante pas en production sans GIT_COMMIT_SHA", async () => {
+    const original = process.env.NODE_ENV;
+    // @ts-expect-error NODE_ENV est en lecture seule dans les types, mais modifiable a l'execution
+    process.env.NODE_ENV = "production";
+    delete process.env.GIT_COMMIT_SHA;
+
+    try {
+      const { GET } = await import("@/app/api/health/route");
+      const res = await GET();
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.commitSha).toBe("unknown");
+    } finally {
+      // @ts-expect-error idem
+      process.env.NODE_ENV = original;
+    }
+  });
 });

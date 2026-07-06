@@ -4,7 +4,7 @@ import packageJson from "@/package.json";
 export async function GET() {
 	const commitSha =
 		process.env.NODE_ENV === "production"
-			? process.env.GIT_COMMIT_SHA!.slice(0, 7)
+			? (process.env.GIT_COMMIT_SHA?.slice(0, 7) ?? "unknown")
 			: "dev";
 
 	return NextResponse.json({
