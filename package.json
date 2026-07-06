@@ -9,6 +9,7 @@
 		"lint": "eslint",
 		"test": "vitest",
 		"test:coverage": "vitest run --coverage",
+		"smoke-test": "node scripts/smoke-test.mjs",
 		"prepare": "husky"
 	},
 	"dependencies": {
