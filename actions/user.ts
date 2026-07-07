@@ -98,6 +98,12 @@ export async function registerUser(data: CreateUserData) {
 	return { success: true, user };
 }
 
+// OWASP A04 : limite le nombre de tentatives de connexion pour empecher le
+// brute force (le hachage argon2id seul ne protege pas contre un nombre
+// illimite d'essais).
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
 export async function loginUser(
 	email: string,
 	password: string,
@@ -108,9 +114,46 @@ export async function loginUser(
 	if (!user)
 		return { success: false, message: "Email ou mot de passe invalide" };
 
+	if (user.lockedUntil && user.lockedUntil > new Date()) {
+		const minutesLeft = Math.ceil(
+			(user.lockedUntil.getTime() - Date.now()) / 60000,
+		);
+		return {
+			success: false,
+			message: `Compte temporairement bloqué suite à trop de tentatives. Réessayez dans ${minutesLeft} minute(s).`,
+		};
+	}
+
 	const isValid = await argon2.verify(user.pwdHash, password);
-	if (!isValid)
+	if (!isValid) {
+		const attempts = user.failedLoginAttempts + 1;
+		const shouldLock = attempts >= MAX_FAILED_LOGIN_ATTEMPTS;
+
+		await prisma.user.update({
+			where: { id: user.id },
+			data: {
+				failedLoginAttempts: shouldLock ? 0 : attempts,
+				lockedUntil: shouldLock
+					? new Date(Date.now() + LOCKOUT_DURATION_MS)
+					: null,
+			},
+		});
+
+		if (shouldLock) {
+			return {
+				success: false,
+				message: "Trop de tentatives échouées. Compte bloqué pendant 15 minutes.",
+			};
+		}
 		return { success: false, message: "Email ou mot de passe invalide" };
+	}
+
+	if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+		await prisma.user.update({
+			where: { id: user.id },
+			data: { failedLoginAttempts: 0, lockedUntil: null },
+		});
+	}
 
 	const session = await prisma.session.create({
 		data: {

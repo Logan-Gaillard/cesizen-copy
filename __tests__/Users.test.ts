@@ -82,6 +82,8 @@ describe("registerUser", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_Abcdef1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -129,6 +131,8 @@ describe("registerUser", () => {
       email: "autre@test.fr",
       pwdHash: "hash",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -151,6 +155,8 @@ describe("registerUser", () => {
       email: "logan@test.fr",
       pwdHash: "hash",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -177,6 +183,8 @@ describe("loginUser", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_Abcdef1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -202,6 +210,77 @@ describe("loginUser", () => {
     expect(result.message).toMatch(/invalide/i);
   });
 
+  it("unit-24 — echec si le compte est verrouille (lockedUntil futur)", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "uuid-123",
+      nickname: "Logan",
+      email: "logan@test.fr",
+      pwdHash: "hashed_Abcdef1!",
+      role: "user",
+      failedLoginAttempts: 5,
+      lockedUntil: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await loginUser("logan@test.fr", "Abcdef1!", false);
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/bloqué/i);
+  });
+
+  it("unit-25 — verrouille le compte apres 5 echecs consecutifs", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "uuid-123",
+      nickname: "Logan",
+      email: "logan@test.fr",
+      pwdHash: "hashed_Abcdef1!",
+      role: "user",
+      failedLoginAttempts: 4,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await loginUser("logan@test.fr", "MauvaisMotDePasse!", false);
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/bloqué/i);
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: "uuid-123" },
+      data: { failedLoginAttempts: 0, lockedUntil: expect.any(Date) },
+    });
+  });
+
+  it("unit-26 — reinitialise le compteur d'echecs apres une connexion reussie", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "uuid-123",
+      nickname: "Logan",
+      email: "logan@test.fr",
+      pwdHash: "hashed_Abcdef1!",
+      role: "user",
+      failedLoginAttempts: 2,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    vi.mocked(prisma.session.create).mockResolvedValue({
+      id: "session-uuid",
+      userId: "uuid-123",
+      token: "token-abc",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await loginUser("logan@test.fr", "Abcdef1!", false);
+
+    expect(result.success).toBe(true);
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: "uuid-123" },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+    });
+  });
+
   it("unit-07 — échec si le mot de passe est incorrect", async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "uuid-123",
@@ -209,6 +288,8 @@ describe("loginUser", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_Abcdef1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -227,8 +308,8 @@ describe("getAllUsers", () => {
   it("unit-08 — retourne la liste des utilisateurs si admin", async () => {
     mockGetSessionUser.mockResolvedValue({ id: "admin-id", role: "admin", nickname: "Admin" });
     vi.mocked(prisma.user.findMany).mockResolvedValue([
-      { id: "u1", nickname: "Alice", email: "alice@test.fr", role: "user" },
-      { id: "u2", nickname: "Bob", email: "bob@test.fr", role: "user" },
+      { id: "u1", nickname: "Alice", email: "alice@test.fr", role: "user", pwdHash: "h", failedLoginAttempts: 0, lockedUntil: null, createdAt: new Date(), updatedAt: new Date() },
+      { id: "u2", nickname: "Bob", email: "bob@test.fr", role: "user", pwdHash: "h", failedLoginAttempts: 0, lockedUntil: null, createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     const users = await getAllUsers();
@@ -261,6 +342,8 @@ describe("deleteUser", () => {
       email: "user@test.fr",
       pwdHash: "hash",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -288,6 +371,8 @@ describe("updateCurrentUserProfile", () => {
       email: "nouveau@test.fr",
       pwdHash: "hash",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -308,6 +393,8 @@ describe("updateCurrentUserProfile", () => {
       email: "autre@test.fr",
       pwdHash: "hash",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -345,6 +432,8 @@ describe("changeCurrentUserPassword", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_AncienMdp1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -354,6 +443,8 @@ describe("changeCurrentUserPassword", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_NouveauMdp1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -414,6 +505,8 @@ describe("changeCurrentUserPassword", () => {
       email: "logan@test.fr",
       pwdHash: "hashed_AncienMdp1!",
       role: "user",
+      failedLoginAttempts: 0,
+      lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

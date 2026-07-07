@@ -20,6 +20,8 @@ model User {
   email     String   @unique
   pwdHash   String   @map("pwd_hash")
   role      String   @default("user")
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

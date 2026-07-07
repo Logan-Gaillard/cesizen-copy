@@ -77,14 +77,20 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 
-# Note : le CLI Prisma (pour `migrate deploy`) n'est PAS embarque ici. Ses
-# dependances transitives (@prisma/config -> effect, etc.) sont eparpillees
-# hors de @prisma/ dans l'arbre complet et rendent une copie partielle fragile.
-# Les migrations tournent dans un service dedie base sur le stage `builder`
-# (voir docker-compose.yml), qui a deja tout node_modules necessaire.
+# CLI Prisma embarque pour que le conteneur applique ses propres migrations au
+# demarrage. Copie complete de @prisma/* : le CLI a des dependances transitives
+# (@prisma/config -> effect, etc.) eparpillees hors de @prisma/, ce qui rend
+# une copie partielle fragile (voir ERRORS.md). Choix assume : image plus
+# lourde (~600 Mo) mais conteneur autonome, compatible avec un auto-update
+# Watchtower en production (qui ne sait mettre a jour qu'un seul conteneur a
+# la fois, sans orchestrer un service de migration separe).
+COPY --from=builder /app/prisma        ./prisma
+COPY --from=builder /app/node_modules/prisma  ./node_modules/prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Applique les migrations puis demarre le serveur standalone
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
