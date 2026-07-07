@@ -32,6 +32,7 @@ export default function Home() {
 			<Title size="lg">Accueil</Title>
 			<p className="text-lg text-gray-600">
 				Bienvenue sur Cesizen, votre compagnon pour une meilleure santé mentale.
+				Ceci est un test
 			</p>
 
 			<Flex direction="column" gap="24px" fullWidth className="mt-8">
@@ -72,7 +73,10 @@ export default function Home() {
 						className="mySwiper w-full"
 					>
 						{Object.values(informations).map((info) => (
-							<SwiperSlide key={info.id} className={isMobile ? "h-auto" : "m-10"}>
+							<SwiperSlide
+								key={info.id}
+								className={isMobile ? "h-auto" : "m-10"}
+							>
 								<InfoCard
 									title={info.title}
 									description={info.description}
