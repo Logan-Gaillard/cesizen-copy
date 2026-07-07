@@ -31,11 +31,32 @@ export type ChangeCurrentPasswordData = {
 	confirmPassword: string;
 };
 
+// OWASP A07 : politique de complexite du mot de passe, appliquee cote serveur
+// (une validation cote client seule peut toujours etre contournee).
+const PASSWORD_COMPLEXITY_MESSAGE =
+	"Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.";
+
+function isPasswordStrong(password: string): boolean {
+	return (
+		password.length >= 8 &&
+		/[A-Z]/.test(password) &&
+		/[0-9]/.test(password) &&
+		/[^A-Za-z0-9]/.test(password)
+	);
+}
+
 export async function registerUser(data: CreateUserData) {
 	if (data.password !== data.confirmPassword) {
 		return {
 			success: false,
 			message: "Les mots de passe ne correspondent pas.",
+		};
+	}
+
+	if (!isPasswordStrong(data.password)) {
+		return {
+			success: false,
+			message: PASSWORD_COMPLEXITY_MESSAGE,
 		};
 	}
 
@@ -273,6 +294,13 @@ export async function changeCurrentUserPassword(
 		return {
 			success: false,
 			message: "Le nouveau mot de passe doit être différent de l'actuel.",
+		};
+	}
+
+	if (!isPasswordStrong(data.newPassword)) {
+		return {
+			success: false,
+			message: PASSWORD_COMPLEXITY_MESSAGE,
 		};
 	}
 
