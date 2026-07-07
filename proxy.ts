@@ -3,10 +3,7 @@ import { getSessionUser } from "./libs/user.service";
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
-	console.log("Proxying to API route:", request.url);
 	const session = await getSessionUser();
-
-	console.log("Session user:", session);
 
 	if (request.url.includes("/exercices")) {
 		if (!session) {

@@ -10,6 +10,8 @@
 		"test": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"smoke-test": "node scripts/smoke-test.mjs",
+		"db:backup": "sh scripts/db-backup.sh",
+		"db:restore": "sh scripts/db-restore.sh",
 		"prepare": "husky"
 	},
 	"dependencies": {
