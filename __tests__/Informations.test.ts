@@ -112,7 +112,7 @@ describe("getAllActus", () => {
     ];
     vi.mocked(prisma.information.findMany).mockResolvedValue(actus);
     vi.mocked(prisma.user.findMany).mockResolvedValue([
-      { id: "admin-uuid", nickname: "Admin", email: "admin@test.fr", pwdHash: "h", role: "admin", createdAt: new Date(), updatedAt: new Date() },
+      { id: "admin-uuid", nickname: "Admin", email: "admin@test.fr", pwdHash: "h", role: "admin", failedLoginAttempts: 0, lockedUntil: null, createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     const result = await getAllActus();
