@@ -62,6 +62,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV NODE_ENV=production
 
+# SHA du commit courant, injecte au build (utilise par /api/health).
+# Root cause de l'incident du 2026-07-06 : cette variable n'etait jamais
+# renseignee nulle part, ni ici ni dans la CI.
+ARG GIT_COMMIT_SHA
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
+
 # Utilisateur non-root pour la sécurité
 RUN groupadd --system --gid 1001 nodejs \
  && useradd --system --uid 1001 --gid nodejs nextjs
