@@ -18,7 +18,7 @@
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.1",
 		"@heroui/react": "^2.8.8",
-		"@mui/icons-material": "^7.3.7",
+		"@mui/icons-material": "^9.2.0",
 		"@mui/material": "^7.3.7",
 		"@prisma/adapter-pg": "^7.3.0",
 		"@prisma/client": "^7.3.0",
