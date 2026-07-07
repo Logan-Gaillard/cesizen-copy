@@ -51,8 +51,11 @@ services:
     # La DB n'est pas exposee sur l'hote — accessible uniquement via le reseau interne
 
   # ── Watchtower : auto-update de l'app des qu'une nouvelle image apparait sur GHCR ──
+  # Le projet original containrrr/watchtower est archive (client Docker interne
+  # trop ancien, incompatible avec les daemons Docker recents). On utilise le
+  # fork activement maintenu par la communaute.
   watchtower:
-    image: containrrr/watchtower
+    image: ghcr.io/nicholas-fedor/watchtower:latest
     container_name: cesizen-watchtower
     restart: unless-stopped
     volumes:
