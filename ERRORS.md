@@ -118,3 +118,11 @@ TypeError: Cannot read properties of undefined (reading 'slice')
 ```
 
 **Résolution** : optional chaining + valeur de repli, et injection réelle de `GIT_COMMIT_SHA` via `ARG`/`ENV` Docker et `build-args` CI.
+
+## 10. Migrations Prisma incompatibles avec l'auto-déploiement Watchtower
+
+**Étape** : Mise en place du déploiement continu réel (Watchtower)
+
+**Contexte** : l'Atelier 9 avait volontairement séparé les migrations Prisma dans un service `migrate` dédié, pour garder l'image `app` allégée (~400 Mo, cf. entrée n°6). Cette architecture s'est révélée incompatible avec un auto-déploiement par Watchtower : Watchtower ne met à jour qu'**un seul conteneur à la fois** et ne peut pas orchestrer « relancer les migrations, puis redémarrer l'app ».
+
+**Résolution** : le conteneur `app` a été rendu autonome — il applique de nouveau ses propres migrations au démarrage (`CMD` du `Dockerfile`), en réintégrant le CLI Prisma complet. Compromis assumé : l'image repasse à ~600 Mo, au bénéfice d'un déploiement fiable et entièrement automatique.

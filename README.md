@@ -45,18 +45,28 @@ docker compose -f docker-compose.dev.yml up --build
 
 Le code source est monté en volume : les modifications sont prises en compte à la volée. La base PostgreSQL est exposée sur `localhost:5432` pour le débogage.
 
-### Avec Docker Compose — production (image standalone)
+### Avec Docker Compose — test local de l'image de production
 
 ```bash
 docker compose up --build -d
 ```
 
-Les migrations Prisma tournent dans un service dédié (`migrate`) avant le démarrage de l'application ; l'image servie ne contient que le strict nécessaire au runtime (mode `output: "standalone"` de Next.js).
+Construit l'image localement (mode `output: "standalone"` de Next.js). Le conteneur applique ses propres migrations Prisma au démarrage avant de lancer le serveur.
 
 ```bash
 docker compose down      # arrête les conteneurs, conserve les données
 docker compose down -v   # arrête les conteneurs et supprime les volumes (reset complet)
 ```
+
+### Déploiement en production (sur le serveur)
+
+Le serveur utilise `docker-compose.prod.yml`, qui **télécharge** l'image déjà construite par la CI (`ghcr.io/logan-gaillard/cesizen-copy:main`) au lieu de la construire localement, et inclut [Watchtower](https://containrrr.dev/watchtower/) pour l'auto-déploiement :
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Une fois lancé, Watchtower vérifie GHCR toutes les 5 minutes et met à jour automatiquement le conteneur `app` dès qu'un nouveau merge sur `main` publie une nouvelle image — sans aucune action manuelle. Aucun secret ni accès SSH n'est nécessaire côté GitHub : le flux est entièrement piloté par la publication de l'image sur le registre (déjà en place depuis l'Atelier 10).
 
 ## Pipeline CI/CD
 
