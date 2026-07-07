@@ -12,7 +12,7 @@
 		"smoke-test": "node scripts/smoke-test.mjs",
 		"db:backup": "sh scripts/db-backup.sh",
 		"db:restore": "sh scripts/db-restore.sh",
-		"prepare": "husky"
+		"prepare": "husky || true"
 	},
 	"dependencies": {
 		"@emotion/react": "^11.14.0",
