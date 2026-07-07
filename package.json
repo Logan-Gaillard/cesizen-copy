@@ -34,7 +34,7 @@
 		"react-dom": "19.2.3",
 		"react-hook-form": "^7.71.1",
 		"styled-components": "^6.3.8",
-		"swiper": "^12.1.2"
+		"swiper": "^14.0.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.14",
