@@ -2,7 +2,7 @@
 # Stage 1 — deps
 # Installe toutes les dépendances (y compris native modules comme argon2)
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-slim AS deps
+FROM node:26-slim AS deps
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm install
 # Stage 2 — builder
 # Génère le client Prisma et build l'application Next.js
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-slim AS builder
+FROM node:26-slim AS builder
 
 WORKDIR /app
 
@@ -51,7 +51,7 @@ RUN npm run build
 # fichiers et node_modules réellement utilisés au runtime (arbre bien plus léger
 # que node_modules complet).
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:20-slim AS runner
+FROM node:26-slim AS runner
 
 WORKDIR /app
 
