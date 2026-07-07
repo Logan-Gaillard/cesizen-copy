@@ -71,7 +71,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality, tests, security]
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # DATABASE_URL n'a besoin que d'etre resolvable pour `next build`/`prisma
+      # generate` (aucune connexion reelle requise ici, ni page statique n'en
+      # depend). Une valeur factice evite de requerir le secret du repo, qui
+      # n'est de toute facon pas disponible sur les PR Dependabot.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
