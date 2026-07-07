@@ -1,24 +1,10 @@
 services:
 
-  # ── Migrations Prisma (job unique, avant le démarrage de l'app) ───────────
-  # Utilise le stage `builder` (node_modules complet) plutôt que l'image finale
-  # allégée : le CLI Prisma n'a pas sa place dans l'image standalone servie.
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
-    container_name: cesizen-migrate
-    command: ["npx", "prisma", "migrate", "deploy"]
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - cesizen-internal
-
   # ── Application Next.js ───────────────────────────────────────────────────
+  # Le conteneur applique ses propres migrations Prisma au demarrage (voir
+  # CMD du Dockerfile) : plus simple a auto-deployer (Watchtower) qu'un service
+  # de migration separe, qui ne peut pas etre orchestre par un outil qui ne
+  # met a jour qu'un seul conteneur a la fois.
   app:
     build:
       context: .
@@ -36,8 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy   # Attend que Postgres soit prêt avant de démarrer
-      migrate:
-        condition: service_completed_successfully   # Attend que les migrations soient appliquées
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - cesizen-internal
 

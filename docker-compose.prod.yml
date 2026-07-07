@@ -1,0 +1,73 @@
+# Fichier de production, a utiliser SUR LE SERVEUR (pas en local).
+# Contrairement a docker-compose.yml (qui construit l'image localement pour
+# les tests/CI), celui-ci ne fait que TELECHARGER l'image deja construite par
+# la CI et publiee sur GHCR — le serveur n'a jamais besoin du code source ni
+# de builder quoi que ce soit.
+#
+# Mise en route initiale sur le serveur :
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Ensuite, Watchtower verifie GHCR toutes les 5 minutes et met a jour l'app
+# automatiquement des qu'une nouvelle image est publiee (donc a chaque merge
+# sur `main`) — sans aucune action manuelle.
+
+services:
+
+  app:
+    image: ghcr.io/logan-gaillard/cesizen-copy:main
+    container_name: cesizen-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - cesizen-internal
+
+  db:
+    image: postgres:16-alpine
+    container_name: cesizen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - cesizen_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - cesizen-internal
+    # La DB n'est pas exposee sur l'hote — accessible uniquement via le reseau interne
+
+  # ── Watchtower : auto-update de l'app des qu'une nouvelle image apparait sur GHCR ──
+  watchtower:
+    image: containrrr/watchtower
+    container_name: cesizen-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"   # ne met a jour QUE les conteneurs avec le label ci-dessus (jamais la DB)
+      WATCHTOWER_CLEANUP: "true"        # supprime les anciennes images apres mise a jour
+      WATCHTOWER_POLL_INTERVAL: "300"   # verifie GHCR toutes les 5 minutes
+    networks:
+      - cesizen-internal
+
+networks:
+  cesizen-internal:
+    driver: bridge
+
+volumes:
+  cesizen_data:
+    driver: local
