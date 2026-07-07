@@ -110,6 +110,18 @@ describe("registerUser", () => {
     expect(result.message).toMatch(/mots de passe ne correspondent pas/i);
   });
 
+  it("unit-22 — échec si le mot de passe ne respecte pas la politique de complexité", async () => {
+    const result = await registerUser({
+      nickname: "Logan",
+      email: "logan@test.fr",
+      password: "abcdefgh",
+      confirmPassword: "abcdefgh",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/8 caractères/i);
+  });
+
   it("unit-03 — échec si le pseudo est déjà pris", async () => {
     vi.mocked(prisma.user.findFirst).mockResolvedValue({
       id: "uuid-existant",
@@ -379,6 +391,19 @@ describe("changeCurrentUserPassword", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toMatch(/différent/i);
+  });
+
+  it("unit-23 — échec si le nouveau mot de passe ne respecte pas la politique de complexité", async () => {
+    mockGetSessionUser.mockResolvedValue({ id: "uuid-123", role: "user", nickname: "Logan" });
+
+    const result = await changeCurrentUserPassword({
+      currentPassword: "AncienMdp1!",
+      newPassword: "abcdefgh",
+      confirmPassword: "abcdefgh",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/8 caractères/i);
   });
 
   it("unit-18 — échec si l'ancien mot de passe est incorrect", async () => {
