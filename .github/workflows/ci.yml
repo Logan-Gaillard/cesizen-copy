@@ -44,7 +44,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       - run: npm run test:coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report-node-${{ matrix.node }}
