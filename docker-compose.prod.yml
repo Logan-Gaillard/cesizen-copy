@@ -1,15 +1,11 @@
-# Fichier de production, a utiliser SUR LE SERVEUR (pas en local).
-# Contrairement a docker-compose.yml (qui construit l'image localement pour
-# les tests/CI), celui-ci ne fait que TELECHARGER l'image deja construite par
-# la CI et publiee sur GHCR — le serveur n'a jamais besoin du code source ni
-# de builder quoi que ce soit.
-#
-# Mise en route initiale sur le serveur :
-#   docker compose -f docker-compose.prod.yml up -d
-#
-# Ensuite, Watchtower verifie GHCR toutes les 5 minutes et met a jour l'app
-# automatiquement des qu'une nouvelle image est publiee (donc a chaque merge
-# sur `main`) — sans aucune action manuelle.
+# A utiliser sur le serveur : docker compose -f docker-compose.prod.yml up -d
+# Watchtower met a jour l'app automatiquement a chaque nouvelle image sur GHCR.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
 
@@ -17,6 +13,7 @@ services:
     image: ghcr.io/logan-gaillard/cesizen-copy:main
     container_name: cesizen-app
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "3000:3000"
     environment:
@@ -34,6 +31,7 @@ services:
     image: postgres:16-alpine
     container_name: cesizen-db
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USER}
@@ -48,22 +46,20 @@ services:
       start_period: 10s
     networks:
       - cesizen-internal
-    # La DB n'est pas exposee sur l'hote — accessible uniquement via le reseau interne
 
-  # ── Watchtower : auto-update de l'app des qu'une nouvelle image apparait sur GHCR ──
-  # Le projet original containrrr/watchtower est archive (client Docker interne
-  # trop ancien, incompatible avec les daemons Docker recents). On utilise le
-  # fork activement maintenu par la communaute.
+  # containrrr/watchtower est archive et incompatible avec les Docker Engine
+  # recents (client API trop ancien) ; fork maintenu utilise a la place.
   watchtower:
     image: ghcr.io/nicholas-fedor/watchtower:latest
     container_name: cesizen-watchtower
     restart: unless-stopped
+    logging: *default-logging
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      WATCHTOWER_LABEL_ENABLE: "true"   # ne met a jour QUE les conteneurs avec le label ci-dessus (jamais la DB)
-      WATCHTOWER_CLEANUP: "true"        # supprime les anciennes images apres mise a jour
-      WATCHTOWER_POLL_INTERVAL: "300"   # verifie GHCR toutes les 5 minutes
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: "300"
     networks:
       - cesizen-internal
 
