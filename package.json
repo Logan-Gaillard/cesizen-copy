@@ -12,6 +12,7 @@
 		"smoke-test": "node scripts/smoke-test.mjs",
 		"db:backup": "sh scripts/db-backup.sh",
 		"db:restore": "sh scripts/db-restore.sh",
+		"db:seed": "prisma db seed",
 		"prepare": "husky"
 	},
 	"dependencies": {
@@ -54,6 +55,7 @@
 		"husky": "^9.1.7",
 		"semantic-release": "^25.0.5",
 		"tailwindcss": "^4",
+		"tsx": "^4.19.2",
 		"typescript": "^5",
 		"vitest": "^4.1.4"
 	}
