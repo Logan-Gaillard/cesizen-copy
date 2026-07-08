@@ -108,6 +108,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 # c'est un ensemble COMPLET et coherent resolu par npm, pas une copie
 # selective de dossiers devinee a la main.
 COPY --from=builder /app/prisma                        ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
