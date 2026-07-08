@@ -32,10 +32,22 @@ Ce dépôt contient l'application ainsi que l'intégralité de sa chaîne DevOps
 npm install
 cp .env.example .env.local   # renseigner DATABASE_URL
 npx prisma migrate deploy
+npm run db:seed              # cree un compte admin, un compte utilisateur et du contenu par defaut
 npm run dev
 ```
 
 L'application est disponible sur [http://localhost:3000](http://localhost:3000).
+
+### Jeu de donnees par defaut (seed)
+
+`npm run db:seed` (ou `npx prisma db seed`) alimente la base avec :
+
+| Compte | Email | Mot de passe |
+|---|---|---|
+| Administrateur | `admin@admin.fr` | `Admin123!` |
+| Utilisateur | `user@user.fr` | `User123!` |
+
+ainsi que quelques informations et exercices de respiration par defaut. Le script (`prisma/seed.ts`) est idempotent : le relancer ne cree pas de doublons. Ces identifiants sont uniquement destines au developpement local — ne jamais seeder une base de production avec des mots de passe connus sans les changer immediatement derriere.
 
 ### Avec Docker Compose — développement (hot-reload)
 
