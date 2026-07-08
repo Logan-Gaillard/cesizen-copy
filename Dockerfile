@@ -18,30 +18,6 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 1b — prod-deps
-# Installe UNIQUEMENT les dependencies de production (npm ci --omit=dev) :
-# contient le client Prisma ET le CLI Prisma (tous deux dans "dependencies",
-# pas "devDependencies"), avec la totalite de leurs dependances transitives
-# (ex : `effect`, requis par @prisma/config mais absent de @prisma/*). Une
-# copie partielle/manuelle de node_modules pour le CLI Prisma s'est revelee
-# fragile a deux reprises (voir ERRORS.md n6 et n11) : npm est la seule source
-# de verite fiable pour cette resolution.
-# ─────────────────────────────────────────────────────────────────────────────
-FROM node:26-slim AS prod-deps
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    make \
-    g++ \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — builder
 # Génère le client Prisma et build l'application Next.js
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,12 +80,20 @@ COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 # CLI Prisma embarque pour que le conteneur applique ses propres migrations au
 # demarrage (compatible avec un auto-update Watchtower, qui ne met a jour qu'un
 # seul conteneur a la fois sans pouvoir orchestrer un service de migration
-# separe). node_modules provient du stage prod-deps (npm ci --omit=dev) :
-# c'est un ensemble COMPLET et coherent resolu par npm, pas une copie
-# selective de dossiers devinee a la main.
+# separe). node_modules provient du stage deps (npm install COMPLET, dev +
+# prod) : plus de distinction dependency/devDependency a deviner a chaque
+# paquet ajoute — source d'au moins 4 incidents de production distincts
+# (effect, dotenv, husky, tsx, voir ERRORS.md). Le cout en taille d'image est
+# largement compense par la fiabilite.
 COPY --from=builder /app/prisma                        ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Requis uniquement par prisma/seed.ts (execute hors du serveur Next.js bundle,
+# donc pas trace par .next/standalone) : le client Prisma genere et le module
+# qui l'instancie.
+COPY --from=builder --chown=nextjs:nodejs /app/app/generated ./app/generated
+COPY --from=builder --chown=nextjs:nodejs /app/libs          ./libs
 
 USER nextjs
 

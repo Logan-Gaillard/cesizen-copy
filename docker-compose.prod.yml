@@ -11,12 +11,23 @@
 # automatiquement des qu'une nouvelle image est publiee (donc a chaque merge
 # sur `main`) — sans aucune action manuelle.
 
+# Limite de logs commune a tous les services : un conteneur qui crash-boucle
+# (ex : incident du 2026-07-08) ecrit sinon des logs sans aucune limite et
+# peut remplir le disque du serveur en quelques heures. 10m x 3 fichiers max
+# par service, largement suffisant pour du debug (docker logs les concatene).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
 
   app:
     image: ghcr.io/logan-gaillard/cesizen-copy:main
     container_name: cesizen-app
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "3000:3000"
     environment:
@@ -34,6 +45,7 @@ services:
     image: postgres:16-alpine
     container_name: cesizen-db
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB:       ${POSTGRES_DB}
       POSTGRES_USER:     ${POSTGRES_USER}
@@ -58,6 +70,7 @@ services:
     image: ghcr.io/nicholas-fedor/watchtower:latest
     container_name: cesizen-watchtower
     restart: unless-stopped
+    logging: *default-logging
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
