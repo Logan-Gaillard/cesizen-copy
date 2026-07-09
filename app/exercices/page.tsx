@@ -218,7 +218,6 @@ export default function RespirationPage() {
 				const nextIndex =
 					(currentPhaseIndex + 1) % selectedExercise.phases.length;
 				if (nextIndex === 0) {
-					console.log("Cycle count:", cycleCount + 1);
 					if (cycleCount + 1 === maxCycleTime) {
 						setIsPlaying(false);
 						setCycleCount(0);
