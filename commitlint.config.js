@@ -15,6 +15,8 @@ module.exports = {
 				"docker", // Dockerfile, docker-compose
 				"iac", // Pulumi
 				"deps", // dépendances
+				"app", // app/page.tsx, app/layout.tsx, app/globals.css
+				"logs", // logs, console.log, console.error
 			],
 		],
 	},
