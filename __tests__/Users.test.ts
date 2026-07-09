@@ -2,14 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-// Mock next/headers (cookies) — inutilisé directement dans registerUser/loginUser
-// mais importé via "use server"
+// Mock next/headers (cookies + headers, ce dernier utilise par le rate limiter)
 vi.mock("next/headers", () => ({
   cookies: vi.fn(() =>
     Promise.resolve({
       get: vi.fn(),
       set: vi.fn(),
       delete: vi.fn(),
+    })
+  ),
+  headers: vi.fn(() =>
+    Promise.resolve({
+      get: vi.fn(() => null),
     })
   ),
 }));

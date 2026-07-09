@@ -5,6 +5,7 @@ import argon2 from "argon2";
 import prisma from "@/libs/db";
 import { cookies } from "next/headers";
 import { getSessionUser } from "@/libs/user.service";
+import { checkRateLimit, getClientIp } from "@/libs/rate-limit";
 
 export type CreateUserData = {
 	nickname: string;
@@ -45,7 +46,25 @@ function isPasswordStrong(password: string): boolean {
 	);
 }
 
+// OWASP A04 : limite le debit de requetes pour freiner les inscriptions
+// massives automatisees (10 requetes / minute par IP).
+const REGISTER_RATE_LIMIT = 10;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+
 export async function registerUser(data: CreateUserData) {
+	const ip = await getClientIp();
+	const { allowed, retryAfterSeconds } = checkRateLimit(
+		`register:${ip}`,
+		REGISTER_RATE_LIMIT,
+		RATE_LIMIT_WINDOW_MS,
+	);
+	if (!allowed) {
+		return {
+			success: false,
+			message: `Trop de tentatives d'inscription. Réessayez dans ${retryAfterSeconds} seconde(s).`,
+		};
+	}
+
 	if (data.password !== data.confirmPassword) {
 		return {
 			success: false,
@@ -104,11 +123,29 @@ export async function registerUser(data: CreateUserData) {
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
+// OWASP A04 : limite le debit de requetes de connexion pour freiner le
+// brute force distribue sur plusieurs comptes (10 requetes / minute par IP,
+// en complement du verrouillage par compte ci-dessus).
+const LOGIN_RATE_LIMIT = 10;
+
 export async function loginUser(
 	email: string,
 	password: string,
 	rememberMe: boolean,
 ) {
+	const ip = await getClientIp();
+	const { allowed, retryAfterSeconds } = checkRateLimit(
+		`login:${ip}`,
+		LOGIN_RATE_LIMIT,
+		RATE_LIMIT_WINDOW_MS,
+	);
+	if (!allowed) {
+		return {
+			success: false,
+			message: `Trop de tentatives de connexion. Réessayez dans ${retryAfterSeconds} seconde(s).`,
+		};
+	}
+
 	const user = await prisma.user.findUnique({ where: { email } });
 
 	if (!user)
