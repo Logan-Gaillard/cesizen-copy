@@ -22,8 +22,6 @@ const ActuId = ({ params }: { params: Promise<{ id: string }> }) => {
 		return <div>Article non trouvé</div>;
 	}
 
-	console.log("Informations actu:", currentActu);
-
 	return (
 		<Flex direction="column" gap="1rem" className="max-w-6xl mx-auto w-full">
 			{/* Header Section */}

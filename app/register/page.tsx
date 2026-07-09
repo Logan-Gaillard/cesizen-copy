@@ -43,7 +43,6 @@ const Register = () => {
 					result.message || "Une erreur est survenue lors de l'inscription.",
 			});
 		}
-		console.log(result);
 	});
 
 	return (
