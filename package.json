@@ -37,7 +37,7 @@
 		"react-hook-form": "^7.71.1",
 		"styled-components": "^6.3.8",
 		"swiper": "^12.1.2",
-		"tsx": "^4.19.2"
+		"tsx": "^4.23.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.14",
