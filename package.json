@@ -22,7 +22,7 @@
 		"@mui/icons-material": "^7.3.7",
 		"@mui/material": "^7.3.7",
 		"@prisma/adapter-pg": "^7.3.0",
-		"@prisma/client": "^7.3.0",
+		"@prisma/client": "^7.9.1",
 		"@reduxjs/toolkit": "^2.11.2",
 		"@types/styled-components": "^5.1.36",
 		"argon2": "^0.44.0",
